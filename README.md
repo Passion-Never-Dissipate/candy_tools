@@ -1,4 +1,4 @@
-# Candy Tools API 文档
+# Candy Tools 文档
 
 ## 概述
 
@@ -210,4 +210,5 @@ result = candy_tools.execute_and_wait_str("list", r"invalid[regex", timeout=2.0)
 - 功能建议：欢迎提交 Pull Request
 
 ---
+
 
