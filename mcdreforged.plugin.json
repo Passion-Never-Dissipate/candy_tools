@@ -1,0 +1,21 @@
+{
+	"id": "candy_tools",
+	"version": "1.0.0",
+	"name": "Candy Tools",
+	"description": {
+		"en_us": "The prerequisite API for the MCDR plugin of FRUITS_CANDY",
+		"zh_cn": "FRUITS_CANDY的MCDR插件的前置api"
+	},
+	"author": [
+		"FRUITS_CANDY"
+	],
+	"link": "https://github.com/Passion-Never-Dissipate/candy_tools",
+	"dependencies": {
+		"mcdreforged": ">=2.7.0"
+	},
+	"archive_name": "Candy_Tools-v{version}",
+	"resources": [
+		"LICENSE"
+	],
+	"entrypoint": "candy_tools.entry"
+}
