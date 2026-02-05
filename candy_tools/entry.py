@@ -16,12 +16,6 @@ def on_load(server: PluginServerInterface, prev):
         # 首次加载，创建新实例
         root.command_getter = ServerDataGetter(server)
 
-    builder = SimpleCommandBuilder()
-
-    builder.command("!!send", execute_command)
-
-    builder.register(server)
-
 
 def on_info(server: PluginServerInterface, info):
     """
@@ -69,12 +63,3 @@ def has_carpet_on_server_start():
     carpet_thread.join(timeout=10)
 
     root.has_carpet = results['has_fabric'] and results['has_carpet']
-
-
-@new_thread
-def execute_command():
-    sender = root.execute_and_wait(
-        "list",
-        r'^There are (?P<amount>\d+) of a max( of)? (?P<limit>\d+) players online:(?P<players>.*)$'
-    )
-    ServerInterface.get_instance().logger.info(sender)

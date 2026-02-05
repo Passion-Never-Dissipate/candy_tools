@@ -117,7 +117,7 @@ def query_carpet():
     return has_carpet
 
 
-def convert_to_scarpet_dict(py_dict):
+def __convert_to_scarpet_dict(py_dict):
     """
     将Python区域字典转换为Scarpet字典字符串（仅字典部分）。
 
@@ -163,7 +163,7 @@ def get_players_nbt_in_regions(
         timeout: float = 10.0
 ):
     """
-    获取指定区域内所有玩家的NBT属性。
+    获取指定区域内所有玩家的NBT属性。（需要carpet mod）
 
     Args:
         region_dict: 区域定义字典
@@ -176,7 +176,7 @@ def get_players_nbt_in_regions(
         - 有玩家: 返回{玩家名: 属性值}
     """
     # 1. 生成区域字典字符串
-    region_map_str = convert_to_scarpet_dict(region_dict)
+    region_map_str = __convert_to_scarpet_dict(region_dict)
 
     # 2. 修改Scarpet指令模板：确保无玩家时也输出 {nbt_attribute}_dict: {}
     # 关键修改：将原来的条件判断改为总是输出字典，只是内容不同
