@@ -5,8 +5,7 @@ from queue import Queue, Empty
 from threading import RLock
 from typing import Dict, Optional, Pattern, List, Union
 from dataclasses import dataclass
-
-from mcdreforged.api.all import *
+from mcdreforged.api.types import PluginServerInterface, Info
 
 
 @dataclass

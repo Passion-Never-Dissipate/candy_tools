@@ -1,13 +1,12 @@
 import threading
 import candy_tools as root
-from mcdreforged.api.all import *
+from mcdreforged.api.decorator import new_thread
+from mcdreforged.api.types import PluginServerInterface
 from candy_tools.server_data_getter import ServerDataGetter
 
 
 def on_load(server: PluginServerInterface, prev):
-    """
-	插件加载时调用
-	"""
+    """插件加载时调用"""
     if hasattr(prev, 'command_getter'):
         # 从之前的实例恢复查询
         root.command_getter = prev.command_getter
@@ -18,18 +17,16 @@ def on_load(server: PluginServerInterface, prev):
 
 
 def on_info(server: PluginServerInterface, info):
-    """
-	处理服务器输出
-	"""
+    """处理服务器输出"""
     root.command_getter.on_info(info)
 
 
 def on_server_start(server: PluginServerInterface):
-    has_carpet_on_server_start()
+    check_carpet_on_server_start()
 
 
 @new_thread
-def has_carpet_on_server_start():
+def check_carpet_on_server_start():
     results = {
         'has_fabric': False,
         'has_carpet': False

@@ -10,7 +10,10 @@ __all__ = [
     'listen_and_wait_str',
     'listen_and_wait_match',
     'query_carpet',
-    'get_players_nbt_in_regions'
+    'get_players_nbt_in_regions',
+    'get_online_players',
+    'get_online_fake_players',
+    'get_online_players_in_regions'
 ]
 
 DEFAULT_TIME_OUT = 5.0  # seconds
@@ -117,6 +120,105 @@ def query_carpet():
     return has_carpet
 
 
+def get_online_players(timeout: float = 5.0):
+    """
+    获取服务器所有在线玩家真实id列表，排除称号，前后缀对玩家id的影响（需要carpet mod）
+
+    Returns:
+        - 超时: 返回None
+        - 无玩家: 返回空列表[]
+        - 有玩家: 返回列表[玩家名1, 玩家名2, ...]
+    """
+
+    if has_carpet is None:
+        query_carpet()
+
+    if not has_carpet:
+        return
+
+    command = "script run players=player('all'); names=map(players, _~'name'); logger('online_player_list: '+str(names)); dummy='[CT] online player list done'"
+    pattern = r"online_player_list:\s*\[(.*?)\]"
+
+    try:
+        match_result = execute_and_wait(
+            command,
+            pattern,
+            timeout=timeout,
+            return_match=True
+        )
+
+        if match_result is None:
+            return None
+
+        content = match_result.group(1).strip()
+
+        if not content:
+            return []
+
+        # 解析玩家列表，去除引号和空格
+        players = []
+        for player_str in content.split(','):
+            player_name = player_str.strip().strip("'").strip('"')
+            if player_name:
+                players.append(player_name)
+
+        return players
+
+    except Exception:
+        return None
+
+
+def get_online_fake_players(timeout: float = 5.0):
+    """
+    获取服务器所有在线的Carpet假人玩家真实id列表，排除称号，前后缀对玩家id的影响（需要carpet mod）
+
+    Args:
+        timeout: 命令超时时间（秒）
+
+    Returns:
+        - 超时: 返回None
+        - 无假人: 返回空列表[]
+        - 有假人: 返回列表[假人名1, 假人名2, ...]
+    """
+
+    if has_carpet is None:
+        query_carpet()
+
+    if not has_carpet:
+        return
+
+    command = "script run all_players=player('all'); fake_players=filter(all_players, _~'player_type'=='fake'); names=map(fake_players, _~'name'); logger('online_fake_player_list: '+str(names)); dummy='[CT] fake player list done'"
+    pattern = r"online_fake_player_list:\s*\[(.*?)\]"
+
+    try:
+        match_result = execute_and_wait(
+            command,
+            pattern,
+            timeout=timeout,
+            return_match=True
+        )
+
+        if match_result is None:
+            return None
+
+        content = match_result.group(1).strip()
+
+        if not content:
+            return []
+
+        # 解析假人名称列表
+        fake_players_list = []
+        for player_str in content.split(','):
+            player_name = player_str.strip().strip("'").strip('"')
+            if player_name:
+                fake_players_list.append(player_name)
+
+        return fake_players_list
+
+    except Exception:
+        return None
+
+
 def __convert_to_scarpet_dict(py_dict):
     """
     将Python区域字典转换为Scarpet字典字符串（仅字典部分）。
@@ -166,15 +268,32 @@ def get_players_nbt_in_regions(
     获取指定区域内所有玩家的NBT属性。（需要carpet mod）
 
     Args:
-        region_dict: 区域定义字典
+        region_dict: 区域定义字典:
+        这里原版维度之所以不用minecraft:overworld是因为在scarpet指令系统里，原版三个维度没有minecraft:
+        但是非原版的维度则不受此限制
+        {
+        'overworld': [
+        {'x1': -100, 'x2': 100, 'y1': 0, 'y2': 255, 'z1': -100, 'z2': 100},
+        {'x1': 200, 'x2': 300, 'z1': 200, 'z2': 300}
+        ],
+        'the_nether': [{'x1': -50, 'x2': 50, 'y1': 0, 'y2': 127, 'z1': -50, 'z2': 50}],
+        'twilightforest:twilight_forest': [{'x1': -50, 'x2': 50}]
+        }
         nbt_attribute: 玩家NBT属性名，如 'uuid', 'health', 'gamemode' 等
         timeout: 超时时间（秒）
 
     Returns:
         - 超时: 返回None
-        - 无玩家: 返回{}
-        - 有玩家: 返回{玩家名: 属性值}
+        - 无玩家: 返回空字典{}
+        - 有玩家: 返回字典{玩家名: 属性值}
     """
+
+    if has_carpet is None:
+        query_carpet()
+
+    if not has_carpet:
+        return
+
     # 1. 生成区域字典字符串
     region_map_str = __convert_to_scarpet_dict(region_dict)
 
@@ -220,3 +339,52 @@ def get_players_nbt_in_regions(
     except Exception:
         # 执行异常
         return None
+
+
+def get_online_players_in_regions(region_dict: dict, timeout: float = 10.0):
+    """
+        获取指定区域内所有在线玩家的真实id列表，排除称号，前后缀对玩家id的影响。（需要carpet mod）
+
+        Args:
+            region_dict: 区域定义字典，格式同 get_players_nbt_in_regions 的 region_dict 参数
+            timeout: 超时时间（秒）
+
+        Returns:
+            - 超时: 返回 None
+            - 无玩家: 返回空列表 []
+            - 有玩家: 返回玩家名称列表 [玩家名1, 玩家名2, ...]
+
+        示例:
+            regions = {
+                "overworld": [{"x1": 50, "z1": 50, "x2": -50, "z2": -50}],
+                "the_nether": [{"x1": 100, "z1": 100, "x2": 200, "z2": 200}]
+            }
+
+            # 获取指定区域内的在线玩家
+            players = get_online_players_in_regions(regions)
+
+            if players is None:
+                print("查询超时")
+            elif len(players) == 0:
+                print("区域内没有玩家")
+            else:
+                print(f"区域内有 {len(players)} 名玩家: {players}")
+        """
+
+    if has_carpet is None:
+        query_carpet()
+
+    if not has_carpet:
+        return
+
+    result = get_players_nbt_in_regions(region_dict, 'name', timeout)
+    # 情况1: 超时 - 没有匹配到任何输出
+    if result is None:
+        return None
+
+    # 情况2: 字典内容为空 {} - 没有玩家
+    if not result:
+        return []
+
+    # 情况3: 有玩家数据 - 返回满足要求的玩家列表
+    return list(result.keys())
